@@ -26,25 +26,27 @@ st.markdown("""
 
     /* Root variables */
     :root {
-        --primary: #D4AF37;          /* Classic Gold */
-        --primary-dark: #AA8C2C;     /* Muted Gold */
-        --secondary: #A0A0A5;       /* Classic Gray */
-        --accent: #D4AF37;          /* Gold Accent */
-        --bg-dark: #07070F;         /* Dark Navy/Purple base */
-        --bg-card: rgba(18, 18, 30, 0.85); /* Dark Glass Card */
-        --bg-card-hover: rgba(26, 26, 46, 0.95);
-        --text-primary: #FFFFFF;
-        --text-secondary: #B0B0B5;
-        --text-muted: #60606A;
+        --primary: #0EA5E9;          /* SaaS Cyan */
+        --primary-dark: #0284C7;     /* Dark Cyan */
+        --secondary: #6366F1;       /* Indigo */
+        --accent: #0EA5E9;          /* Cyan Accent */
+        --bg-dark: #090D16;         /* Dark Slate base */
+        --bg-card: rgba(15, 23, 42, 0.7); /* Dark Glass Card */
+        --bg-card-hover: rgba(30, 41, 59, 0.85);
+        --text-primary: #F8FAFC;
+        --text-secondary: #CBD5E1;
+        --text-muted: #64748B;
         --border: rgba(255, 255, 255, 0.08); /* Subtle White Border */
-        --border-gold: rgba(212, 175, 55, 0.25);
+        --border-primary: rgba(14, 165, 233, 0.25);
         --positive: #10B981;        /* Emerald Green */
-        --negative: #EF4444;        /* Crimson Red */
+        --negative: #F43F5E;        /* Crimson Red */
     }
 
     /* Global styles */
     .stApp {
-        background: linear-gradient(135deg, #0A0A16 0%, #120A24 50%, #080D1A 100%);
+        background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.1) 0%, transparent 40%),
+                    #090D16;
         font-family: 'Inter', sans-serif;
         color: var(--text-primary);
     }
@@ -54,7 +56,7 @@ st.markdown("""
 
     /* Sidebar styling */
     [data-testid="stSidebar"] {
-        background-color: #0D0D19 !important;
+        background-color: #070A13 !important;
         border-right: 1px solid var(--border) !important;
     }
 
@@ -73,19 +75,22 @@ st.markdown("""
     .hero-header {
         text-align: center;
         padding: 3rem 2rem 2.5rem;
-        background: linear-gradient(180deg, #121226 0%, #0A0A16 100%);
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.8) 0%, rgba(9, 13, 22, 0.9) 100%);
         border-radius: 16px;
         border: 1px solid var(--border);
         margin-bottom: 2rem;
         position: relative;
-        box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     }
 
     .hero-title {
         font-family: 'Outfit', sans-serif;
         font-size: 2.8rem;
         font-weight: 800;
-        color: #D4AF37; /* Solid gold brand color */
+        color: #0EA5E9; /* Solid fallback brand color */
+        background: linear-gradient(90deg, #0EA5E9 0%, #6366F1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         margin: 0;
         line-height: 1.2;
@@ -109,8 +114,8 @@ st.markdown("""
     }
 
     .hero-badge {
-        background: rgba(212, 175, 55, 0.05);
-        border: 1px solid rgba(212, 175, 55, 0.15);
+        background: rgba(14, 165, 233, 0.05);
+        border: 1px solid rgba(14, 165, 233, 0.15);
         border-radius: 30px;
         padding: 0.35rem 1rem;
         font-size: 0.75rem;
@@ -122,7 +127,7 @@ st.markdown("""
 
     /* Card styles */
     .glass-card {
-        background: rgba(18, 18, 30, 0.85);
+        background: rgba(15, 23, 42, 0.7);
         backdrop-filter: blur(10px);
         border: 1px solid var(--border);
         border-radius: 12px;
@@ -132,8 +137,8 @@ st.markdown("""
     }
 
     .glass-card:hover {
-        border-color: var(--border-gold);
-        box-shadow: 0 8px 30px rgba(212, 175, 55, 0.03);
+        border-color: var(--border-primary);
+        box-shadow: 0 8px 30px rgba(14, 165, 233, 0.03);
     }
 
     .card-header {
@@ -164,13 +169,13 @@ st.markdown("""
     }
 
     .result-negative {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.02) 100%);
-        border: 1px solid rgba(239, 68, 68, 0.3);
+        background: linear-gradient(135deg, rgba(244, 63, 94, 0.08) 0%, rgba(244, 63, 94, 0.02) 100%);
+        border: 1px solid rgba(244, 63, 94, 0.3);
     }
 
     .result-neutral {
-        background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.02) 100%);
-        border: 1px solid rgba(212, 175, 55, 0.3);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0.02) 100%);
+        border: 1px solid rgba(99, 102, 241, 0.3);
     }
 
     .sentiment-label {
@@ -199,7 +204,7 @@ st.markdown("""
 
     /* Model card styles */
     .model-card {
-        background: #0F0F10;
+        background: rgba(15, 23, 42, 0.6);
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 1.25rem;
@@ -208,7 +213,7 @@ st.markdown("""
     }
 
     .model-card:hover {
-        border-color: var(--border-gold);
+        border-color: var(--border-primary);
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
     }
@@ -222,9 +227,9 @@ st.markdown("""
         gap: 0.5rem;
     }
 
-    .model-rnn { color: #A0A0A5; }
-    .model-lstm { color: #E5C158; }
-    .model-gru { color: #D4AF37; }
+    .model-rnn { color: #94A3B8; }
+    .model-lstm { color: #6366F1; }
+    .model-gru { color: #0EA5E9; }
 
     /* Progress bar styles */
     .prob-bar-container {
@@ -255,15 +260,15 @@ st.markdown("""
 
     .prob-bar-fill-neg {
         height: 100%;
-        background: linear-gradient(90deg, #EF4444, #F87171);
+        background: linear-gradient(90deg, #F43F5E, #FB7185);
         border-radius: 4px;
         transition: width 0.8s ease;
     }
 
     /* Textarea styling */
     .stTextArea textarea {
-        background: #0A0A0C !important;
-        border: 1px solid #222222 !important;
+        background: rgba(15, 23, 42, 0.8) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
         border-radius: 8px !important;
         color: white !important;
         font-family: 'Inter', sans-serif !important;
@@ -273,7 +278,7 @@ st.markdown("""
 
     .stTextArea textarea:focus {
         border-color: var(--primary) !important;
-        box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.15) !important;
+        box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.15) !important;
     }
 
     .stTextArea textarea::placeholder {
@@ -282,8 +287,8 @@ st.markdown("""
 
     /* Button styling */
     .stButton > button {
-        background: linear-gradient(135deg, #D4AF37 0%, #AA8C2C 100%) !important;
-        color: #000000 !important;
+        background: linear-gradient(135deg, #0EA5E9 0%, #6366F1 100%) !important;
+        color: #FFFFFF !important;
         border: none !important;
         border-radius: 8px !important;
         padding: 0.75rem 2.5rem !important;
@@ -294,13 +299,13 @@ st.markdown("""
         width: 100% !important;
         text-transform: uppercase !important;
         letter-spacing: 1.5px !important;
-        box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15) !important;
+        box-shadow: 0 4px 15px rgba(14, 165, 233, 0.15) !important;
     }
 
     .stButton > button:hover {
-        background: linear-gradient(135deg, #E5C158 0%, #C3A23A 100%) !important;
+        background: linear-gradient(135deg, #38BDF8 0%, #818CF8 100%) !important;
         transform: translateY(-2px) !important;
-        box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3) !important;
+        box-shadow: 0 6px 20px rgba(14, 165, 233, 0.3) !important;
     }
 
     .stButton > button:active {
@@ -364,7 +369,7 @@ st.markdown("""
 
     .metric-box {
         flex: 1;
-        background: rgba(212, 175, 55, 0.05);
+        background: rgba(14, 165, 233, 0.05);
         border: 1px solid var(--border);
         border-radius: 8px;
         padding: 0.75rem;
@@ -389,8 +394,8 @@ st.markdown("""
     /* Best model badge */
     .best-badge {
         display: inline-block;
-        background: linear-gradient(135deg, #D4AF37, #AA8C2C);
-        color: #000000;
+        background: linear-gradient(135deg, #0EA5E9, #6366F1);
+        color: #FFFFFF;
         font-size: 0.65rem;
         font-weight: 700;
         padding: 0.15rem 0.5rem;
@@ -407,7 +412,7 @@ st.markdown("""
         grid-template-columns: 1fr 1fr 1fr 1fr;
         gap: 0.5rem;
         padding: 0.5rem 1rem;
-        background: rgba(212, 175, 55, 0.08);
+        background: rgba(14, 165, 233, 0.08);
         border-radius: 8px 8px 0 0;
         font-size: 0.75rem;
         font-weight: 600;
@@ -427,7 +432,7 @@ st.markdown("""
     }
 
     .comparison-row:hover {
-        background: rgba(212, 175, 55, 0.03);
+        background: rgba(14, 165, 233, 0.03);
     }
 
     .comparison-row:last-child {
@@ -466,8 +471,8 @@ st.markdown("""
 
     /* Warning box */
     .warning-box {
-        background: rgba(239, 68, 68, 0.08);
-        border: 1px solid rgba(239, 68, 68, 0.25);
+        background: rgba(244, 63, 94, 0.08);
+        border: 1px solid rgba(244, 63, 94, 0.25);
         border-radius: 8px;
         padding: 1rem;
         color: var(--negative);
@@ -486,8 +491,8 @@ st.markdown("""
 
     /* Info box */
     .info-box {
-        background: rgba(212, 175, 55, 0.05);
-        border: 1px solid rgba(212, 175, 55, 0.2);
+        background: rgba(14, 165, 233, 0.05);
+        border: 1px solid rgba(14, 165, 233, 0.2);
         border-radius: 8px;
         padding: 1rem;
         color: var(--primary);
@@ -496,7 +501,7 @@ st.markdown("""
 
     /* Selectbox */
     .stSelectbox > div > div {
-        background: #0F0F10 !important;
+        background: rgba(15, 23, 42, 0.8) !important;
         border: 1px solid var(--border) !important;
         border-radius: 8px !important;
         color: white !important;
@@ -632,7 +637,7 @@ def get_sentiment_info(prob):
     if prob >= 0.5:
         return "Positive", prob * 100, "positive", "😊", "#10B981"
     else:
-        return "Negative", (1 - prob) * 100, "negative", "😞", "#EF4444"
+        return "Negative", (1 - prob) * 100, "negative", "😞", "#F43F5E"
 
 
 # ─── Sidebar ──────────────────────────────────────────────────────────────────
@@ -670,8 +675,8 @@ with st.sidebar:
 
         st.markdown(f"""
         <div style="
-            background: rgba(212, 175, 55, 0.04);
-            border: 1px solid rgba(212, 175, 55, 0.15);
+            background: rgba(14, 165, 233, 0.04);
+            border: 1px solid rgba(14, 165, 233, 0.15);
             border-radius: 8px;
             padding: 0.75rem;
             margin-top: 0.5rem;
@@ -694,7 +699,7 @@ with st.sidebar:
     }
 
     for model_name, perf in perf_data.items():
-        color = {"SimpleRNN": "#A0A0A5", "LSTM": "#E5C158", "GRU": "#D4AF37"}[model_name]
+        color = {"SimpleRNN": "#94A3B8", "LSTM": "#6366F1", "GRU": "#0EA5E9"}[model_name]
         best = " 🏆" if model_name == "GRU" else ""
         st.markdown(f"""
         <div style="
@@ -749,20 +754,21 @@ all_loaded = len(models) == 3 and word_index is not None and maxlen is not None
 
 col_status1, col_status2, col_status3 = st.columns(3)
 model_status_cols = {"SimpleRNN": col_status1, "LSTM": col_status2, "GRU": col_status3}
-model_colors = {"SimpleRNN": "#A0A0A5", "LSTM": "#E5C158", "GRU": "#D4AF37"}
+model_colors = {"SimpleRNN": "#94A3B8", "LSTM": "#6366F1", "GRU": "#0EA5E9"}
 
 for model_name, col in model_status_cols.items():
     with col:
         is_loaded = model_name in models
-        status_color = "#10B981" if is_loaded else "#EF4444"
+        status_color = "#10B981" if is_loaded else "#F43F5E"
         status_text = "Loaded ✓" if is_loaded else "Error ✗"
         st.markdown(f"""
         <div style="
-            background: #0F0F10;
-            border: 1px solid {model_colors[model_name]}30;
-            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid {model_colors[model_name]}40;
+            border-radius: 10px;
             padding: 0.75rem 1rem;
             text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
         ">
             <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">{model_name}</div>
             <div style="font-size: 0.85rem; color: {status_color}; font-weight: 600; margin-top: 0.25rem;">{status_text}</div>
@@ -885,10 +891,10 @@ if analyze_btn and review_text.strip():
                             number = {'suffix': "%", 'font': {'size': 32, 'color': '#FFFFFF'}},
                             gauge = {
                                 'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "#888888"},
-                                'bar': {'color': "#D4AF37"},  # Gold indicator bar
-                                'bgcolor': "#050505",
+                                'bar': {'color': "#0EA5E9"},  # Cyan indicator bar
+                                'bgcolor': "rgba(15, 23, 42, 0.5)",
                                 'borderwidth': 1,
-                                'bordercolor': "#222222",
+                                'bordercolor': "rgba(255, 255, 255, 0.1)",
                                 'steps': [
                                     {'range': [0, 50], 'color': '#2C0E0E'},  # Deep red for negative
                                     {'range': [50, 100], 'color': '#0B2C1A'}  # Deep green for positive
@@ -1017,7 +1023,7 @@ if analyze_btn and review_text.strip():
                             y=models_list,
                             x=neg_probs,
                             orientation='h',
-                            marker=dict(color='#EF4444'),
+                            marker=dict(color='#F43F5E'),
                             text=[f"{n:.1f}%" for n in neg_probs],
                             textposition='inside',
                             textfont=dict(color='#FFFFFF')
@@ -1031,7 +1037,7 @@ if analyze_btn and review_text.strip():
                         font={'color': "#FFFFFF", 'family': "Inter"},
                         xaxis=dict(
                             gridcolor='#222222',
-                            tickfont=dict(color='#A0A0A5'),
+                            tickfont=dict(color='#CBD5E1'),
                             range=[0, 100],
                             ticksuffix='%',
                             title="Probability"
@@ -1091,17 +1097,18 @@ if analyze_btn and review_text.strip():
                     positive_count = sentiments.count("Positive")
                     negative_count = sentiments.count("Negative")
                     consensus = "Positive" if positive_count > negative_count else "Negative" if negative_count > positive_count else "Mixed"
-                    consensus_color = "#10B981" if consensus == "Positive" else "#EF4444" if consensus == "Negative" else "#D4AF37"
+                    consensus_color = "#10B981" if consensus == "Positive" else "#F43F5E" if consensus == "Negative" else "#6366F1"
                     consensus_emoji = "😊" if consensus == "Positive" else "😞" if consensus == "Negative" else "🤔"
 
                     st.markdown(f"""
                     <div style="
-                        background: #0F0F10;
+                        background: rgba(15, 23, 42, 0.6);
                         border: 1px solid {consensus_color}30;
                         border-radius: 12px;
                         padding: 1.5rem;
                         text-align: center;
                         margin-top: 1rem;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
                     ">
                         <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.5rem;">Overall Consensus</div>
                         <div style="font-size: 2.5rem; margin: 0.5rem 0;">{consensus_emoji}</div>
