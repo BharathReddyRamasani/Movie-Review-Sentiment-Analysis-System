@@ -8,6 +8,7 @@ import numpy as np
 import pickle
 import os
 import time
+import plotly.graph_objects as go
 
 # Page configuration
 st.set_page_config(
@@ -25,25 +26,26 @@ st.markdown("""
 
     /* Root variables */
     :root {
-        --primary: #6C63FF;
-        --primary-dark: #5A52D5;
-        --secondary: #FF6584;
-        --accent: #43E97B;
-        --bg-dark: #0D0D1A;
-        --bg-card: #1A1A2E;
-        --bg-card-hover: #1E1E35;
+        --primary: #D4AF37;          /* Classic Gold */
+        --primary-dark: #AA8C2C;     /* Muted Gold */
+        --secondary: #A0A0A5;       /* Classic Gray */
+        --accent: #D4AF37;          /* Gold Accent */
+        --bg-dark: #000000;         /* Pitch Black */
+        --bg-card: #0F0F10;         /* Matte Black Card */
+        --bg-card-hover: #161618;   /* Hover State Card */
         --text-primary: #FFFFFF;
-        --text-secondary: #A0AEC0;
-        --text-muted: #718096;
-        --border: rgba(108, 99, 255, 0.2);
-        --positive: #43E97B;
-        --negative: #FF6584;
-        --glass: rgba(255, 255, 255, 0.05);
+        --text-secondary: #B0B0B5;
+        --text-muted: #55555A;
+        --border: #222222;          /* Subtle Border */
+        --border-gold: rgba(212, 175, 55, 0.25);
+        --positive: #10B981;        /* Emerald Green */
+        --negative: #EF4444;        /* Crimson Red */
     }
 
     /* Global styles */
     .stApp {
-        background: linear-gradient(135deg, #0D0D1A 0%, #1A0A2E 50%, #0D1A2E 100%);
+        background-color: #050505;
+        background-image: radial-gradient(circle at 50% 50%, #121215 0%, #050505 100%);
         font-family: 'Inter', sans-serif;
         color: var(--text-primary);
     }
@@ -53,8 +55,8 @@ st.markdown("""
 
     /* Sidebar styling */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1A1A2E 0%, #16213E 100%);
-        border-right: 1px solid var(--border);
+        background-color: #0A0A0B !important;
+        border-right: 1px solid var(--border) !important;
     }
 
     [data-testid="stSidebar"] > div:first-child {
@@ -71,53 +73,34 @@ st.markdown("""
     /* Header styles */
     .hero-header {
         text-align: center;
-        padding: 3rem 2rem 2rem;
-        background: linear-gradient(135deg, rgba(108, 99, 255, 0.1) 0%, rgba(255, 101, 132, 0.05) 100%);
-        border-radius: 20px;
+        padding: 3rem 2rem 2.5rem;
+        background: linear-gradient(180deg, #0A0A0C 0%, #050505 100%);
+        border-radius: 16px;
         border: 1px solid var(--border);
         margin-bottom: 2rem;
         position: relative;
-        overflow: hidden;
-    }
-
-    .hero-header::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle at center, rgba(108, 99, 255, 0.05) 0%, transparent 60%);
-        animation: pulse 4s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 0.5; }
-        50% { transform: scale(1.1); opacity: 1; }
+        box-shadow: 0 4px 30px rgba(0,0,0,0.5);
     }
 
     .hero-title {
         font-family: 'Outfit', sans-serif;
         font-size: 2.8rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #6C63FF 0%, #FF6584 50%, #43E97B 100%);
+        background: linear-gradient(135deg, #FFFFFF 0%, #D4AF37 50%, #A0A0A5 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
         margin: 0;
         line-height: 1.2;
-        position: relative;
-        z-index: 1;
     }
 
     .hero-subtitle {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         color: var(--text-secondary);
         margin-top: 0.75rem;
         font-weight: 400;
-        letter-spacing: 0.5px;
-        position: relative;
-        z-index: 1;
+        letter-spacing: 1px;
+        text-transform: uppercase;
     }
 
     .hero-badges {
@@ -126,34 +109,33 @@ st.markdown("""
         gap: 1rem;
         margin-top: 1.5rem;
         flex-wrap: wrap;
-        position: relative;
-        z-index: 1;
     }
 
     .hero-badge {
-        background: rgba(108, 99, 255, 0.15);
-        border: 1px solid rgba(108, 99, 255, 0.3);
-        border-radius: 20px;
-        padding: 0.3rem 0.9rem;
-        font-size: 0.8rem;
+        background: rgba(212, 175, 55, 0.05);
+        border: 1px solid rgba(212, 175, 55, 0.15);
+        border-radius: 30px;
+        padding: 0.35rem 1rem;
+        font-size: 0.75rem;
         color: var(--text-secondary);
-        font-weight: 500;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     /* Card styles */
     .glass-card {
-        background: rgba(26, 26, 46, 0.8);
-        backdrop-filter: blur(10px);
+        background: #0F0F10;
         border: 1px solid var(--border);
-        border-radius: 16px;
+        border-radius: 12px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
         transition: all 0.3s ease;
     }
 
     .glass-card:hover {
-        border-color: rgba(108, 99, 255, 0.4);
-        box-shadow: 0 8px 32px rgba(108, 99, 255, 0.1);
+        border-color: var(--border-gold);
+        box-shadow: 0 8px 30px rgba(212, 175, 55, 0.03);
     }
 
     .card-header {
@@ -170,27 +152,27 @@ st.markdown("""
 
     /* Sentiment result styles */
     .result-card {
-        border-radius: 16px;
+        border-radius: 12px;
         padding: 2rem;
         text-align: center;
         position: relative;
         overflow: hidden;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
     }
 
     .result-positive {
-        background: linear-gradient(135deg, rgba(67, 233, 123, 0.15) 0%, rgba(67, 233, 123, 0.05) 100%);
-        border: 2px solid rgba(67, 233, 123, 0.4);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.02) 100%);
+        border: 1px solid rgba(16, 185, 129, 0.3);
     }
 
     .result-negative {
-        background: linear-gradient(135deg, rgba(255, 101, 132, 0.15) 0%, rgba(255, 101, 132, 0.05) 100%);
-        border: 2px solid rgba(255, 101, 132, 0.4);
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.02) 100%);
+        border: 1px solid rgba(239, 68, 68, 0.3);
     }
 
     .result-neutral {
-        background: linear-gradient(135deg, rgba(108, 99, 255, 0.15) 0%, rgba(108, 99, 255, 0.05) 100%);
-        border: 2px solid rgba(108, 99, 255, 0.4);
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.02) 100%);
+        border: 1px solid rgba(212, 175, 55, 0.3);
     }
 
     .sentiment-label {
@@ -219,7 +201,7 @@ st.markdown("""
 
     /* Model card styles */
     .model-card {
-        background: rgba(26, 26, 46, 0.9);
+        background: #0F0F10;
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 1.25rem;
@@ -228,8 +210,9 @@ st.markdown("""
     }
 
     .model-card:hover {
+        border-color: var(--border-gold);
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
     }
 
     .model-name {
@@ -241,9 +224,9 @@ st.markdown("""
         gap: 0.5rem;
     }
 
-    .model-rnn { color: #6C63FF; }
-    .model-lstm { color: #FF6584; }
-    .model-gru { color: #43E97B; }
+    .model-rnn { color: #A0A0A5; }
+    .model-lstm { color: #E5C158; }
+    .model-gru { color: #D4AF37; }
 
     /* Progress bar styles */
     .prob-bar-container {
@@ -267,23 +250,23 @@ st.markdown("""
 
     .prob-bar-fill-pos {
         height: 100%;
-        background: linear-gradient(90deg, #43E97B, #38F9D7);
+        background: linear-gradient(90deg, #10B981, #34D399);
         border-radius: 4px;
         transition: width 0.8s ease;
     }
 
     .prob-bar-fill-neg {
         height: 100%;
-        background: linear-gradient(90deg, #FF6584, #FF4458);
+        background: linear-gradient(90deg, #EF4444, #F87171);
         border-radius: 4px;
         transition: width 0.8s ease;
     }
 
     /* Textarea styling */
     .stTextArea textarea {
-        background: rgba(26, 26, 46, 0.9) !important;
-        border: 1px solid rgba(108, 99, 255, 0.3) !important;
-        border-radius: 12px !important;
+        background: #0A0A0C !important;
+        border: 1px solid #222222 !important;
+        border-radius: 8px !important;
         color: white !important;
         font-family: 'Inter', sans-serif !important;
         font-size: 1rem !important;
@@ -291,34 +274,35 @@ st.markdown("""
     }
 
     .stTextArea textarea:focus {
-        border-color: rgba(108, 99, 255, 0.7) !important;
-        box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.15) !important;
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.15) !important;
     }
 
     .stTextArea textarea::placeholder {
-        color: rgba(160, 174, 192, 0.5) !important;
+        color: rgba(160, 160, 165, 0.4) !important;
     }
 
     /* Button styling */
     .stButton > button {
-        background: linear-gradient(135deg, #6C63FF 0%, #5A52D5 100%) !important;
-        color: white !important;
+        background: linear-gradient(135deg, #D4AF37 0%, #AA8C2C 100%) !important;
+        color: #000000 !important;
         border: none !important;
-        border-radius: 12px !important;
+        border-radius: 8px !important;
         padding: 0.75rem 2.5rem !important;
-        font-size: 1rem !important;
-        font-weight: 600 !important;
-        font-family: 'Inter', sans-serif !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+        font-family: 'Outfit', sans-serif !important;
         transition: all 0.3s ease !important;
         width: 100% !important;
         text-transform: uppercase !important;
-        letter-spacing: 1px !important;
+        letter-spacing: 1.5px !important;
+        box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15) !important;
     }
 
     .stButton > button:hover {
-        background: linear-gradient(135deg, #7C73FF 0%, #6A62E5 100%) !important;
+        background: linear-gradient(135deg, #E5C158 0%, #C3A23A 100%) !important;
         transform: translateY(-2px) !important;
-        box-shadow: 0 8px 25px rgba(108, 99, 255, 0.4) !important;
+        box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3) !important;
     }
 
     .stButton > button:active {
@@ -341,7 +325,7 @@ st.markdown("""
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 1.5px;
-        color: var(--text-muted);
+        color: var(--primary);
         margin-bottom: 0.75rem;
         margin-top: 1.5rem;
     }
@@ -360,10 +344,11 @@ st.markdown("""
     }
 
     .sidebar-logo-title {
-        font-size: 1rem;
+        font-size: 1.1rem;
         font-weight: 700;
         color: var(--text-primary);
         font-family: 'Outfit', sans-serif;
+        letter-spacing: 0.5px;
     }
 
     .sidebar-logo-subtitle {
@@ -381,9 +366,9 @@ st.markdown("""
 
     .metric-box {
         flex: 1;
-        background: rgba(108, 99, 255, 0.1);
-        border: 1px solid rgba(108, 99, 255, 0.2);
-        border-radius: 10px;
+        background: rgba(212, 175, 55, 0.05);
+        border: 1px solid var(--border);
+        border-radius: 8px;
         padding: 0.75rem;
         text-align: center;
     }
@@ -406,12 +391,12 @@ st.markdown("""
     /* Best model badge */
     .best-badge {
         display: inline-block;
-        background: linear-gradient(135deg, #43E97B, #38F9D7);
-        color: #0D0D1A;
+        background: linear-gradient(135deg, #D4AF37, #AA8C2C);
+        color: #000000;
         font-size: 0.65rem;
         font-weight: 700;
         padding: 0.15rem 0.5rem;
-        border-radius: 10px;
+        border-radius: 4px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-left: 0.5rem;
@@ -424,13 +409,13 @@ st.markdown("""
         grid-template-columns: 1fr 1fr 1fr 1fr;
         gap: 0.5rem;
         padding: 0.5rem 1rem;
-        background: rgba(108, 99, 255, 0.1);
+        background: rgba(212, 175, 55, 0.08);
         border-radius: 8px 8px 0 0;
         font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 1px;
-        color: var(--text-muted);
+        color: var(--primary);
     }
 
     .comparison-row {
@@ -438,13 +423,13 @@ st.markdown("""
         grid-template-columns: 1fr 1fr 1fr 1fr;
         gap: 0.5rem;
         padding: 0.75rem 1rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid var(--border);
         font-size: 0.9rem;
         transition: all 0.2s ease;
     }
 
     .comparison-row:hover {
-        background: rgba(108, 99, 255, 0.05);
+        background: rgba(212, 175, 55, 0.03);
     }
 
     .comparison-row:last-child {
@@ -483,19 +468,19 @@ st.markdown("""
 
     /* Warning box */
     .warning-box {
-        background: rgba(255, 193, 7, 0.1);
-        border: 1px solid rgba(255, 193, 7, 0.3);
-        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        border-radius: 8px;
         padding: 1rem;
-        color: #FFC107;
+        color: var(--negative);
         font-size: 0.9rem;
     }
 
     /* Success box */
     .success-box {
-        background: rgba(67, 233, 123, 0.1);
-        border: 1px solid rgba(67, 233, 123, 0.3);
-        border-radius: 10px;
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        border-radius: 8px;
         padding: 1rem;
         color: var(--positive);
         font-size: 0.9rem;
@@ -503,9 +488,9 @@ st.markdown("""
 
     /* Info box */
     .info-box {
-        background: rgba(108, 99, 255, 0.1);
-        border: 1px solid rgba(108, 99, 255, 0.3);
-        border-radius: 10px;
+        background: rgba(212, 175, 55, 0.05);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        border-radius: 8px;
         padding: 1rem;
         color: var(--primary);
         font-size: 0.9rem;
@@ -513,9 +498,9 @@ st.markdown("""
 
     /* Selectbox */
     .stSelectbox > div > div {
-        background: rgba(26, 26, 46, 0.9) !important;
-        border: 1px solid rgba(108, 99, 255, 0.3) !important;
-        border-radius: 10px !important;
+        background: #0F0F10 !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 8px !important;
         color: white !important;
     }
 
@@ -527,13 +512,6 @@ st.markdown("""
     /* Spinner */
     .stSpinner > div {
         border-top-color: var(--primary) !important;
-    }
-
-    /* Animated gradient text */
-    @keyframes gradient-shift {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
     }
 
     /* Footer */
@@ -654,9 +632,9 @@ def predict_sentiment(model, padded_sequence):
 def get_sentiment_info(prob):
     """Get sentiment label, confidence, and styling class."""
     if prob >= 0.5:
-        return "Positive", prob * 100, "positive", "😊", "#43E97B"
+        return "Positive", prob * 100, "positive", "😊", "#10B981"
     else:
-        return "Negative", (1 - prob) * 100, "negative", "😞", "#FF6584"
+        return "Negative", (1 - prob) * 100, "negative", "😞", "#EF4444"
 
 
 # ─── Sidebar ──────────────────────────────────────────────────────────────────
@@ -694,13 +672,13 @@ with st.sidebar:
 
         st.markdown(f"""
         <div style="
-            background: rgba(108, 99, 255, 0.08);
-            border: 1px solid rgba(108, 99, 255, 0.2);
-            border-radius: 10px;
+            background: rgba(212, 175, 55, 0.04);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 8px;
             padding: 0.75rem;
             margin-top: 0.5rem;
             font-size: 0.8rem;
-            color: #A0AEC0;
+            color: var(--text-secondary);
             line-height: 1.5;
         ">
             {model_descriptions[selected_model]}
@@ -718,7 +696,7 @@ with st.sidebar:
     }
 
     for model_name, perf in perf_data.items():
-        color = {"SimpleRNN": "#6C63FF", "LSTM": "#FF6584", "GRU": "#43E97B"}[model_name]
+        color = {"SimpleRNN": "#A0A0A5", "LSTM": "#E5C158", "GRU": "#D4AF37"}[model_name]
         best = " 🏆" if model_name == "GRU" else ""
         st.markdown(f"""
         <div style="
@@ -727,12 +705,12 @@ with st.sidebar:
             align-items: center;
             padding: 0.4rem 0.6rem;
             margin: 0.3rem 0;
-            background: rgba(255,255,255,0.03);
+            background: rgba(255,255,255,0.02);
             border-radius: 8px;
             font-size: 0.8rem;
         ">
             <span style="color: {color}; font-weight: 600;">{model_name}{best}</span>
-            <span style="color: #A0AEC0;">Acc: {perf['acc']}</span>
+            <span style="color: #B0B0B5;">Acc: {perf['acc']}</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -773,22 +751,22 @@ all_loaded = len(models) == 3 and word_index is not None and maxlen is not None
 
 col_status1, col_status2, col_status3 = st.columns(3)
 model_status_cols = {"SimpleRNN": col_status1, "LSTM": col_status2, "GRU": col_status3}
-model_colors = {"SimpleRNN": "#6C63FF", "LSTM": "#FF6584", "GRU": "#43E97B"}
+model_colors = {"SimpleRNN": "#A0A0A5", "LSTM": "#E5C158", "GRU": "#D4AF37"}
 
 for model_name, col in model_status_cols.items():
     with col:
         is_loaded = model_name in models
-        status_color = "#43E97B" if is_loaded else "#FF6584"
+        status_color = "#10B981" if is_loaded else "#EF4444"
         status_text = "Loaded ✓" if is_loaded else "Error ✗"
         st.markdown(f"""
         <div style="
-            background: rgba(26, 26, 46, 0.8);
+            background: #0F0F10;
             border: 1px solid {model_colors[model_name]}30;
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 0.75rem 1rem;
             text-align: center;
         ">
-            <div style="font-size: 0.7rem; color: #718096; text-transform: uppercase; letter-spacing: 1px;">{model_name}</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">{model_name}</div>
             <div style="font-size: 0.85rem; color: {status_color}; font-weight: 600; margin-top: 0.25rem;">{status_text}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -897,66 +875,36 @@ if analyze_btn and review_text.strip():
 
                     with col_chart:
                         st.markdown("""
-                        <div class="glass-card" style="margin-top: 0;">
-                            <div class="card-header">📈 Probability Distribution</div>
+                        <div class="glass-card" style="margin-top: 0; padding-bottom: 0.5rem;">
+                            <div class="card-header">📈 Sentiment Gauge</div>
                         """, unsafe_allow_html=True)
 
-                        # Positive probability
-                        st.markdown(f"""
-                        <div class="prob-bar-container">
-                            <div class="prob-bar-label">
-                                <span>😊 Positive</span>
-                                <span style="color: #43E97B; font-weight: 700;">{pos_prob:.1f}%</span>
-                            </div>
-                            <div class="prob-bar">
-                                <div class="prob-bar-fill-pos" style="width: {pos_prob}%;"></div>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
-
-                        # Negative probability
-                        st.markdown(f"""
-                        <div class="prob-bar-container" style="margin-top: 1rem;">
-                            <div class="prob-bar-label">
-                                <span>😞 Negative</span>
-                                <span style="color: #FF6584; font-weight: 700;">{neg_prob:.1f}%</span>
-                            </div>
-                            <div class="prob-bar">
-                                <div class="prob-bar-fill-neg" style="width: {neg_prob}%;"></div>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
-
-                        # Gauge-like display
-                        gauge_pos = pos_prob / 100
-                        st.markdown(f"""
-                        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05);">
-                            <div style="text-align: center; font-size: 0.75rem; color: #718096; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Sentiment Score</div>
-                            <div style="
-                                height: 12px;
-                                background: linear-gradient(90deg, #FF6584, #FFC107, #43E97B);
-                                border-radius: 6px;
-                                position: relative;
-                            ">
-                                <div style="
-                                    position: absolute;
-                                    left: calc({pos_prob:.0f}% - 6px);
-                                    top: -4px;
-                                    width: 20px;
-                                    height: 20px;
-                                    background: white;
-                                    border-radius: 50%;
-                                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-                                    border: 3px solid {color};
-                                "></div>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #718096; margin-top: 0.25rem;">
-                                <span>Negative</span>
-                                <span>Neutral</span>
-                                <span>Positive</span>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        # Render a gorgeous Plotly gauge chart
+                        fig = go.Figure(go.Indicator(
+                            mode = "gauge+number",
+                            value = pos_prob,
+                            domain = {'x': [0, 1], 'y': [0, 1]},
+                            number = {'suffix': "%", 'font': {'size': 32, 'color': '#FFFFFF'}},
+                            gauge = {
+                                'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "#888888"},
+                                'bar': {'color': "#D4AF37"},  # Gold indicator bar
+                                'bgcolor': "#050505",
+                                'borderwidth': 1,
+                                'bordercolor': "#222222",
+                                'steps': [
+                                    {'range': [0, 50], 'color': '#2C0E0E'},  # Deep red for negative
+                                    {'range': [50, 100], 'color': '#0B2C1A'}  # Deep green for positive
+                                ]
+                            }
+                        ))
+                        fig.update_layout(
+                            paper_bgcolor='rgba(0,0,0,0)',
+                            plot_bgcolor='rgba(0,0,0,0)',
+                            font={'color': "#FFFFFF", 'family': "Inter"},
+                            height=200,
+                            margin=dict(l=25, r=25, t=30, b=10)
+                        )
+                        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
                         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -1047,43 +995,66 @@ if analyze_btn and review_text.strip():
 
                     # Detailed comparison chart
                     st.markdown("""
-                    <div class="glass-card" style="margin-top: 1.5rem;">
+                    <div class="glass-card" style="margin-top: 1.5rem; padding-bottom: 0.5rem;">
                         <div class="card-header">📊 Detailed Probability Comparison</div>
                     """, unsafe_allow_html=True)
 
-                    for model_name in model_order:
-                        if model_name in results:
-                            r = results[model_name]
-                            model_color = model_colors[model_name]
-                            is_best = model_name == best_model
+                    models_list = [model_name for model_name in model_order if model_name in results]
+                    pos_probs = [results[m]["pos_prob"] for m in models_list]
+                    neg_probs = [results[m]["neg_prob"] for m in models_list]
 
-                            best_tag = f'<span style="font-size: 0.65rem; background: linear-gradient(135deg, #43E97B, #38F9D7); color: #0D0D1A; padding: 0.1rem 0.4rem; border-radius: 6px; font-weight: 700; margin-left: 0.4rem;">BEST</span>' if is_best else ""
+                    fig = go.Figure(data=[
+                        go.Bar(
+                            name='😊 Positive',
+                            y=models_list,
+                            x=pos_probs,
+                            orientation='h',
+                            marker=dict(color='#10B981'),
+                            text=[f"{p:.1f}%" for p in pos_probs],
+                            textposition='inside',
+                            textfont=dict(color='#FFFFFF')
+                        ),
+                        go.Bar(
+                            name='😞 Negative',
+                            y=models_list,
+                            x=neg_probs,
+                            orientation='h',
+                            marker=dict(color='#EF4444'),
+                            text=[f"{n:.1f}%" for n in neg_probs],
+                            textposition='inside',
+                            textfont=dict(color='#FFFFFF')
+                        )
+                    ])
 
-                            st.markdown(f"""
-                            <div style="margin-bottom: 1.5rem;">
-                                <div style="font-weight: 700; color: {model_color}; margin-bottom: 0.5rem; font-size: 0.9rem;">
-                                    {model_emojis[model_name]} {model_name}{best_tag}
-                                </div>
-                                <div class="prob-bar-container">
-                                    <div class="prob-bar-label">
-                                        <span>😊 Positive</span>
-                                        <span style="color: #43E97B; font-weight: 700;">{r['pos_prob']:.1f}%</span>
-                                    </div>
-                                    <div class="prob-bar">
-                                        <div class="prob-bar-fill-pos" style="width: {r['pos_prob']}%;"></div>
-                                    </div>
-                                </div>
-                                <div class="prob-bar-container" style="margin-top: 0.5rem;">
-                                    <div class="prob-bar-label">
-                                        <span>😞 Negative</span>
-                                        <span style="color: #FF6584; font-weight: 700;">{r['neg_prob']:.1f}%</span>
-                                    </div>
-                                    <div class="prob-bar">
-                                        <div class="prob-bar-fill-neg" style="width: {r['neg_prob']}%;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
+                    fig.update_layout(
+                        barmode='group',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        font={'color': "#FFFFFF", 'family': "Inter"},
+                        xaxis=dict(
+                            gridcolor='#222222',
+                            tickfont=dict(color='#A0A0A5'),
+                            range=[0, 100],
+                            ticksuffix='%',
+                            title="Probability"
+                        ),
+                        yaxis=dict(
+                            gridcolor='rgba(0,0,0,0)',
+                            tickfont=dict(color='#FFFFFF', size=13),
+                            autorange="reversed"
+                        ),
+                        legend=dict(
+                            font=dict(color='#FFFFFF'),
+                            orientation="h",
+                            yanchor="bottom",
+                            y=1.02,
+                            xanchor="right",
+                            x=1
+                        ),
+                        height=250,
+                        margin=dict(l=20, r=20, t=10, b=10)
+                    )
+                    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
                     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -1111,7 +1082,7 @@ if analyze_btn and review_text.strip():
                                 <div style="color: {model_color}; font-weight: 600;">{model_emojis[model_name]} {model_name}{best_tag}</div>
                                 <div style="color: {r['color']};">{r['emoji']} {r['sentiment']}</div>
                                 <div style="color: {r['color']}; font-weight: 700;">{r['confidence']:.1f}%</div>
-                                <div style="color: #43E97B;">{r['pos_prob']:.1f}%</div>
+                                <div style="color: #10B981;">{r['pos_prob']:.1f}%</div>
                             </div>
                             """, unsafe_allow_html=True)
 
@@ -1122,22 +1093,22 @@ if analyze_btn and review_text.strip():
                     positive_count = sentiments.count("Positive")
                     negative_count = sentiments.count("Negative")
                     consensus = "Positive" if positive_count > negative_count else "Negative" if negative_count > positive_count else "Mixed"
-                    consensus_color = "#43E97B" if consensus == "Positive" else "#FF6584" if consensus == "Negative" else "#FFC107"
+                    consensus_color = "#10B981" if consensus == "Positive" else "#EF4444" if consensus == "Negative" else "#D4AF37"
                     consensus_emoji = "😊" if consensus == "Positive" else "😞" if consensus == "Negative" else "🤔"
 
                     st.markdown(f"""
                     <div style="
-                        background: linear-gradient(135deg, rgba(26,26,46,0.9), rgba(16,16,32,0.9));
-                        border: 2px solid {consensus_color}40;
-                        border-radius: 16px;
+                        background: #0F0F10;
+                        border: 1px solid {consensus_color}30;
+                        border-radius: 12px;
                         padding: 1.5rem;
                         text-align: center;
                         margin-top: 1rem;
                     ">
-                        <div style="font-size: 0.75rem; color: #718096; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.5rem;">Overall Consensus</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.5rem;">Overall Consensus</div>
                         <div style="font-size: 2.5rem; margin: 0.5rem 0;">{consensus_emoji}</div>
                         <div style="font-size: 1.8rem; font-weight: 800; color: {consensus_color}; font-family: 'Outfit', sans-serif;">{consensus}</div>
-                        <div style="font-size: 0.8rem; color: #718096; margin-top: 0.5rem;">
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">
                             {positive_count} model(s) → Positive &nbsp;|&nbsp; {negative_count} model(s) → Negative
                         </div>
                     </div>
