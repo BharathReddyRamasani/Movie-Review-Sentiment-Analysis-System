@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+.env
+venv/
+env/
+ENV/
+
+# Streamlit
+.streamlit/
+
+# Keras / TensorFlow models (large binary files - add separately)
+*.keras
+*.h5
+*.pkl
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
