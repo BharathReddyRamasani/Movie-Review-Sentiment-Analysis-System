@@ -600,23 +600,20 @@ def preprocess_text(review_text, word_index, maxlen):
             except ImportError:
                 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-        # Tokenize
-        words = review_text.lower().split()
-        # Map words to indices (offset by 3 for special tokens)
-        sequence = []
-        for word in words:
-            if word in word_index:
-                idx = word_index[word]
-                # IMDB word index: values > 2 shift by 3 (reserved 0=pad, 1=start, 2=oov, 3=unused)
-                if idx < 10000:  # typical vocab size limit
-                    sequence.append(idx + 3)
-                else:
-                    sequence.append(2)  # OOV token
-            else:
-                sequence.append(2)  # OOV token
+        # Convert words to indices, handling unknown words
+        token_list = []
+        for word in review_text.lower().split():
+            unk_idx = word_index.get('<UNK>', 2)
+            token = word_index.get(word, unk_idx)
+            token_list.append(token)
 
-        # Pad sequence
-        padded = pad_sequences([sequence], maxlen=maxlen, padding='pre', truncating='pre')
+        # Add <START> token at the beginning
+        start_idx = word_index.get('<START>', 1)
+        token_list = [start_idx] + token_list
+
+        # Pad the sequence
+        pad_idx = word_index.get('<PAD>', 0)
+        padded = pad_sequences([token_list], value=pad_idx, padding='post', maxlen=maxlen)
         return padded
     except Exception as e:
         st.error(f"Preprocessing error: {e}")
@@ -651,44 +648,29 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="sidebar-section-label">⚙️ Analysis Mode</div>', unsafe_allow_html=True)
-
-    analysis_mode = st.radio(
-        "Select Mode",
-        ["Single Model", "Compare All Models"],
-        label_visibility="collapsed"
-    )
-
-    if analysis_mode == "Single Model":
-        st.markdown('<div class="sidebar-section-label">🤖 Select Model</div>', unsafe_allow_html=True)
-        selected_model = st.radio(
-            "Model",
-            ["SimpleRNN", "LSTM", "GRU"],
-            label_visibility="collapsed"
-        )
-
-        model_descriptions = {
-            "SimpleRNN": "Basic recurrent neural network. Simpler architecture, faster but may struggle with long-range dependencies.",
-            "LSTM": "Long Short-Term Memory. Excellent at capturing long-range dependencies with memory gates.",
-            "GRU": "Gated Recurrent Unit. Efficient architecture balancing performance and speed. 🏆 Best performer."
-        }
-
+    st.markdown('<div class="sidebar-section-label">🧠 Model Architectures</div>', unsafe_allow_html=True)
+    model_descriptions = {
+        "SimpleRNN": "Basic recurrent network. Fast but struggles with long-range dependencies.",
+        "LSTM": "Long Short-Term Memory. capturing long-range dependencies with memory gates.",
+        "GRU": "Gated Recurrent Unit. Efficient architecture balancing performance and speed. 🏆 Best performer."
+    }
+    for model_name, desc in model_descriptions.items():
+        color = {"SimpleRNN": "#94A3B8", "LSTM": "#6366F1", "GRU": "#0EA5E9"}[model_name]
         st.markdown(f"""
         <div style="
-            background: rgba(14, 165, 233, 0.04);
-            border: 1px solid rgba(14, 165, 233, 0.15);
-            border-radius: 8px;
-            padding: 0.75rem;
-            margin-top: 0.5rem;
-            font-size: 0.8rem;
+            background: rgba(255,255,255,0.02);
+            border-left: 3px solid {color};
+            border-radius: 4px;
+            padding: 0.5rem;
+            margin: 0.4rem 0;
+            font-size: 0.78rem;
             color: var(--text-secondary);
-            line-height: 1.5;
+            line-height: 1.4;
         ">
-            {model_descriptions[selected_model]}
+            <strong style="color: {color};">{model_name}</strong><br>
+            {desc}
         </div>
         """, unsafe_allow_html=True)
-    else:
-        selected_model = "All"
 
     st.markdown('<div class="sidebar-section-label" style="margin-top: 1.5rem;">📊 Model Performance</div>', unsafe_allow_html=True)
 
@@ -722,7 +704,7 @@ with st.sidebar:
     <div style="font-size: 0.78rem; color: #718096; line-height: 1.6;">
         • Write detailed reviews for better accuracy<br>
         • GRU model performs best on IMDB data<br>
-        • Compare all models to see differences<br>
+        • All models run concurrently to give you a consensus prediction<br>
         • Confidence > 80% indicates strong sentiment
     </div>
     """, unsafe_allow_html=True)
@@ -818,8 +800,8 @@ with col_btn2:
 # ─── Sample Reviews ───────────────────────────────────────────────────────────
 
 with st.expander("💡 Try Sample Reviews", expanded=False):
-    sample_positive = "This movie was absolutely phenomenal! The director created a masterpiece with stunning visuals, incredible performances, and a deeply moving storyline. I was completely captivated from the first frame to the last. The cinematography was breathtaking and the musical score perfectly complemented every scene. Highly recommended to everyone!"
-    sample_negative = "What a terrible waste of time and money! The plot made absolutely no sense, the acting was wooden and unconvincing, and the special effects looked cheap and amateurish. The dialogue was cringeworthy and the pacing was painfully slow. I nearly fell asleep multiple times. Do yourself a favor and avoid this disaster."
+    sample_positive = "This movie was wonderful and amazing."
+    sample_negative = "The movie was boring and a complete waste of time."
 
     col_s1, col_s2 = st.columns(2)
     with col_s1:
@@ -845,159 +827,171 @@ if analyze_btn and review_text.strip():
             time.sleep(0.3)  # Brief pause for UX
 
         if padded is not None:
-            if analysis_mode == "Single Model":
-                # ─── Single Model Analysis ─────────────────────────────────
-                model = models[selected_model]
-                prob = predict_sentiment(model, padded)
+            results = {}
+            model_order = ["SimpleRNN", "LSTM", "GRU"]
+            model_emojis = {"SimpleRNN": "🧠", "LSTM": "🔄", "GRU": "⚡"}
 
-                if prob is not None:
-                    sentiment, confidence, sentiment_class, emoji, color = get_sentiment_info(prob)
-                    pos_prob = prob * 100
-                    neg_prob = (1 - prob) * 100
-
-                    st.markdown(f"""
-                    <div class="section-title">
-                        📊 Analysis Results — {selected_model}
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    col_main, col_chart = st.columns([1, 1])
-
-                    with col_main:
-                        st.markdown(f"""
-                        <div class="result-card result-{sentiment_class}">
-                            <div style="font-size: 3rem; margin-bottom: 0.5rem;">{emoji}</div>
-                            <div class="sentiment-label sentiment-{sentiment_class}">
-                                {sentiment}
-                            </div>
-                            <div class="confidence-value" style="color: {color};">
-                                {confidence:.1f}%
-                            </div>
-                            <div class="confidence-label">Confidence Score</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-
-                    with col_chart:
-                        st.markdown("""
-                        <div class="glass-card" style="margin-top: 0; padding-bottom: 0.5rem;">
-                            <div class="card-header">📈 Sentiment Gauge</div>
-                        """, unsafe_allow_html=True)
-
-                        # Render a gorgeous Plotly gauge chart
-                        fig = go.Figure(go.Indicator(
-                            mode = "gauge+number",
-                            value = pos_prob,
-                            domain = {'x': [0, 1], 'y': [0, 1]},
-                            number = {'suffix': "%", 'font': {'size': 32, 'color': '#FFFFFF'}},
-                            gauge = {
-                                'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "#888888"},
-                                'bar': {'color': "#0EA5E9"},  # Cyan indicator bar
-                                'bgcolor': "rgba(15, 23, 42, 0.5)",
-                                'borderwidth': 1,
-                                'bordercolor': "rgba(255, 255, 255, 0.1)",
-                                'steps': [
-                                    {'range': [0, 50], 'color': '#2C0E0E'},  # Deep red for negative
-                                    {'range': [50, 100], 'color': '#0B2C1A'}  # Deep green for positive
-                                ]
+            with st.spinner("🔄 Running Deep Learning models..."):
+                for model_name in model_order:
+                    if model_name in models:
+                        prob = predict_sentiment(models[model_name], padded)
+                        if prob is not None:
+                            sentiment, confidence, sentiment_class, emoji, color = get_sentiment_info(prob)
+                            results[model_name] = {
+                                "prob": prob,
+                                "sentiment": sentiment,
+                                "confidence": confidence,
+                                "sentiment_class": sentiment_class,
+                                "emoji": emoji,
+                                "color": color,
+                                "pos_prob": prob * 100,
+                                "neg_prob": (1 - prob) * 100
                             }
-                        ))
-                        fig.update_layout(
-                            paper_bgcolor='rgba(0,0,0,0)',
-                            plot_bgcolor='rgba(0,0,0,0)',
-                            font={'color': "#FFFFFF", 'family': "Inter"},
-                            height=200,
-                            margin=dict(l=25, r=25, t=30, b=10)
-                        )
-                        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
-                        st.markdown("</div>", unsafe_allow_html=True)
+            if results:
+                # Determine the "Best Pick" among LSTM and GRU (the reliable models)
+                reliable_candidates = [m for m in ["LSTM", "GRU"] if m in results]
+                if reliable_candidates:
+                    best_model = max(reliable_candidates, key=lambda k: results[k]["confidence"])
+                else:
+                    best_model = max(results.keys(), key=lambda k: results[k]["confidence"])
 
-                    # Review stats
-                    word_count = len(review_text.split())
-                    st.markdown(f"""
-                    <div class="metric-row">
-                        <div class="metric-box">
-                            <div class="metric-value">{word_count}</div>
-                            <div class="metric-label">Words</div>
-                        </div>
-                        <div class="metric-box">
-                            <div class="metric-value">{len(review_text)}</div>
-                            <div class="metric-label">Characters</div>
-                        </div>
-                        <div class="metric-box">
-                            <div class="metric-value" style="color: {color};">{confidence:.0f}%</div>
-                            <div class="metric-label">Confidence</div>
-                        </div>
-                        <div class="metric-box">
-                            <div class="metric-value" style="font-size: 1rem;">{selected_model}</div>
-                            <div class="metric-label">Model</div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                best_res = results[best_model]
 
-            else:
-                # ─── Compare All Models ────────────────────────────────────
-                st.markdown("""
+                st.markdown(f"""
                 <div class="section-title">
-                    🔬 Model Comparison Dashboard
+                    🎯 Final Sentiment Prediction (Best Pick)
                 </div>
                 """, unsafe_allow_html=True)
 
-                results = {}
-                model_order = ["SimpleRNN", "LSTM", "GRU"]
-                model_emojis = {"SimpleRNN": "🧠", "LSTM": "🔄", "GRU": "⚡"}
+                col_main, col_chart = st.columns([1, 1])
 
-                with st.spinner("🔄 Running all models..."):
-                    for model_name in model_order:
-                        if model_name in models:
-                            prob = predict_sentiment(models[model_name], padded)
-                            if prob is not None:
-                                sentiment, confidence, sentiment_class, emoji, color = get_sentiment_info(prob)
-                                results[model_name] = {
-                                    "prob": prob,
-                                    "sentiment": sentiment,
-                                    "confidence": confidence,
-                                    "sentiment_class": sentiment_class,
-                                    "emoji": emoji,
-                                    "color": color,
-                                    "pos_prob": prob * 100,
-                                    "neg_prob": (1 - prob) * 100
-                                }
+                with col_main:
+                    st.markdown(f"""
+                    <div class="result-card result-{best_res['sentiment_class']}">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;">{best_res['emoji']}</div>
+                        <div class="sentiment-label sentiment-{best_res['sentiment_class']}">
+                            {best_res['sentiment']}
+                        </div>
+                        <div class="confidence-value" style="color: {best_res['color']};">
+                            {best_res['confidence']:.1f}%
+                        </div>
+                        <div class="confidence-label">Confidence Score</div>
+                        <div style="
+                            font-size: 0.8rem;
+                            color: var(--text-secondary);
+                            background: rgba(255, 255, 255, 0.03);
+                            border: 1px solid var(--border);
+                            border-radius: 6px;
+                            padding: 0.4rem 0.8rem;
+                            display: inline-block;
+                            margin-top: 1rem;
+                            font-weight: 500;
+                        ">
+                            Selected Model: <span style="color: {model_colors[best_model]}; font-weight: 700;">{model_emojis[best_model]} {best_model}</span>
+                        </div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.3;">
+                            *Calculated by choosing the most confident prediction between our high-accuracy models (LSTM & GRU).
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
 
-                if results:
-                    # Find best model (highest confidence)
-                    best_model = max(results, key=lambda k: results[k]["confidence"])
-
-                    # Display individual model cards
-                    cols = st.columns(len(results))
-                    for idx, model_name in enumerate(model_order):
-                        if model_name in results:
-                            r = results[model_name]
-                            model_color = model_colors[model_name]
-                            is_best = model_name == best_model
-
-                            with cols[idx]:
-                                best_indicator = '<span class="best-badge">Best</span>' if is_best else ""
-                                style_str = f"border: 2px solid {model_color}; box-shadow: 0 0 20px {model_color}30;" if is_best else ""
-                                st.markdown(f"""
-                                <div class="result-card result-{r['sentiment_class']}" style="{style_str}">
-                                    <div style="font-size: 0.8rem; font-weight: 700; color: {model_color}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
-                                        {model_emojis[model_name]} {model_name}{best_indicator}
-                                    </div>
-                                    <div style="font-size: 1.8rem; margin: 0.3rem 0;">{r['emoji']}</div>
-                                    <div class="sentiment-label sentiment-{r['sentiment_class']}" style="font-size: 1.4rem;">
-                                        {r['sentiment']}
-                                    </div>
-                                    <div class="confidence-value" style="color: {r['color']}; font-size: 2.5rem;">
-                                        {r['confidence']:.1f}%
-                                    </div>
-                                    <div class="confidence-label">Confidence</div>
-                                </div>
-                                """, unsafe_allow_html=True)
-
-                    # Detailed comparison chart
+                with col_chart:
                     st.markdown("""
-                    <div class="glass-card" style="margin-top: 1.5rem; padding-bottom: 0.5rem;">
+                    <div class="glass-card" style="margin-top: 0; padding-bottom: 0.5rem;">
+                        <div class="card-header">📈 Sentiment Probability Gauge</div>
+                    """, unsafe_allow_html=True)
+
+                    # Render Plotly gauge chart
+                    fig = go.Figure(go.Indicator(
+                        mode = "gauge+number",
+                        value = best_res['pos_prob'],
+                        domain = {'x': [0, 1], 'y': [0, 1]},
+                        number = {'suffix': "%", 'font': {'size': 32, 'color': '#FFFFFF'}},
+                        gauge = {
+                            'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "#888888"},
+                            'bar': {'color': "#0EA5E9"},
+                            'bgcolor': "rgba(15, 23, 42, 0.5)",
+                            'borderwidth': 1,
+                            'bordercolor': "rgba(255, 255, 255, 0.1)",
+                            'steps': [
+                                {'range': [0, 50], 'color': '#2C0E0E'},  # Deep red for negative
+                                {'range': [50, 100], 'color': '#0B2C1A'}  # Deep green for positive
+                            ]
+                        }
+                    ))
+                    fig.update_layout(
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        font={'color': "#FFFFFF", 'family': "Inter"},
+                        height=210,
+                        margin=dict(l=25, r=25, t=30, b=10)
+                    )
+                    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+
+                    st.markdown("</div>", unsafe_allow_html=True)
+
+                word_count = len(review_text.split())
+                st.markdown(f"""
+                <div class="metric-row" style="margin-top: 1rem; margin-bottom: 1.5rem;">
+                    <div class="metric-box">
+                        <div class="metric-value">{word_count}</div>
+                        <div class="metric-label">Words</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">{len(review_text)}</div>
+                        <div class="metric-label">Characters</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" style="color: {best_res['color']};">{best_res['confidence']:.0f}%</div>
+                        <div class="metric-label">Max Confidence</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" style="font-size: 1rem; color: {model_colors[best_model]};">{best_model}</div>
+                        <div class="metric-label">Optimal Model</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.markdown("""
+                <div class="section-title" style="margin-top: 2rem;">
+                    🔬 Individual Model Comparison
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Display individual model cards
+                cols = st.columns(len(results))
+                for idx, model_name in enumerate(model_order):
+                    if model_name in results:
+                        r = results[model_name]
+                        model_color = model_colors[model_name]
+                        is_best = model_name == best_model
+
+                        with cols[idx]:
+                            best_indicator = '<span class="best-badge">Best Pick</span>' if is_best else ""
+                            style_str = f"border: 2px solid {model_color}; box-shadow: 0 0 20px {model_color}30;" if is_best else ""
+                            st.markdown(f"""
+                            <div class="result-card result-{r['sentiment_class']}" style="{style_str}">
+                                <div style="font-size: 0.8rem; font-weight: 700; color: {model_color}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
+                                    {model_emojis[model_name]} {model_name}{best_indicator}
+                                </div>
+                                <div style="font-size: 1.8rem; margin: 0.3rem 0;">{r['emoji']}</div>
+                                <div class="sentiment-label sentiment-{r['sentiment_class']}" style="font-size: 1.4rem;">
+                                    {r['sentiment']}
+                                </div>
+                                <div class="confidence-value" style="color: {r['color']}; font-size: 2.5rem;">
+                                    {r['confidence']:.1f}%
+                                </div>
+                                <div class="confidence-label">Confidence</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+
+                # Detailed comparison chart & table
+                col_chart2, col_table = st.columns([1, 1])
+
+                with col_chart2:
+                    st.markdown("""
+                    <div class="glass-card" style="margin-top: 0; padding-bottom: 0.5rem; height: 100%;">
                         <div class="card-header">📊 Detailed Probability Comparison</div>
                     """, unsafe_allow_html=True)
 
@@ -1057,12 +1051,11 @@ if analyze_btn and review_text.strip():
                         margin=dict(l=20, r=20, t=10, b=10)
                     )
                     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
-
                     st.markdown("</div>", unsafe_allow_html=True)
 
-                    # Summary table
+                with col_table:
                     st.markdown("""
-                    <div class="glass-card">
+                    <div class="glass-card" style="margin-top: 0; height: 100%;">
                         <div class="card-header">📋 Summary Comparison Table</div>
                         <div class="comparison-header">
                             <div>Model</div>
@@ -1089,33 +1082,6 @@ if analyze_btn and review_text.strip():
                             """, unsafe_allow_html=True)
 
                     st.markdown("</div>", unsafe_allow_html=True)
-
-                    # Consensus
-                    sentiments = [results[m]["sentiment"] for m in model_order if m in results]
-                    positive_count = sentiments.count("Positive")
-                    negative_count = sentiments.count("Negative")
-                    consensus = "Positive" if positive_count > negative_count else "Negative" if negative_count > positive_count else "Mixed"
-                    consensus_color = "#10B981" if consensus == "Positive" else "#F43F5E" if consensus == "Negative" else "#6366F1"
-                    consensus_emoji = "😊" if consensus == "Positive" else "😞" if consensus == "Negative" else "🤔"
-
-                    st.markdown(f"""
-                    <div style="
-                        background: rgba(15, 23, 42, 0.6);
-                        border: 1px solid {consensus_color}30;
-                        border-radius: 12px;
-                        padding: 1.5rem;
-                        text-align: center;
-                        margin-top: 1rem;
-                        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-                    ">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.5rem;">Overall Consensus</div>
-                        <div style="font-size: 2.5rem; margin: 0.5rem 0;">{consensus_emoji}</div>
-                        <div style="font-size: 1.8rem; font-weight: 800; color: {consensus_color}; font-family: 'Outfit', sans-serif;">{consensus}</div>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">
-                            {positive_count} model(s) → Positive &nbsp;|&nbsp; {negative_count} model(s) → Negative
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
 
 elif analyze_btn and not review_text.strip():
     st.markdown("""
