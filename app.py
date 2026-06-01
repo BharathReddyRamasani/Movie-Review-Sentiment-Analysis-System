@@ -553,14 +553,16 @@ st.markdown("""
 
 @st.cache_resource
 def load_models():
-    """Load all three models and preprocessing artifacts."""
+    """Load all three models and preprocessing artifacts from the models directory."""
     models = {}
     errors = {}
 
+    models_dir = 'models'
+
     model_configs = {
-        'SimpleRNN': 'simplernn_imdb_model.keras',
-        'LSTM': 'lstm_imdb_model.keras',
-        'GRU': 'gru_imdb_model.keras'
+        'SimpleRNN': os.path.join(models_dir, 'simplernn_imdb_model.keras'),
+        'LSTM': os.path.join(models_dir, 'lstm_imdb_model.keras'),
+        'GRU': os.path.join(models_dir, 'gru_imdb_model.keras')
     }
 
     try:
@@ -581,25 +583,27 @@ def load_models():
 
     # Load word index
     word_index = None
-    if os.path.exists('imdb_word_index.pkl'):
+    word_index_path = os.path.join(models_dir, 'imdb_word_index.pkl')
+    if os.path.exists(word_index_path):
         try:
-            with open('imdb_word_index.pkl', 'rb') as f:
+            with open(word_index_path, 'rb') as f:
                 word_index = pickle.load(f)
         except Exception as e:
             errors['word_index'] = str(e)
     else:
-        errors['word_index'] = "imdb_word_index.pkl not found"
+        errors['word_index'] = f"imdb_word_index.pkl not found at {word_index_path}"
 
     # Load maxlen
     maxlen = None
-    if os.path.exists('imdb_maxlen.pkl'):
+    maxlen_path = os.path.join(models_dir, 'imdb_maxlen.pkl')
+    if os.path.exists(maxlen_path):
         try:
-            with open('imdb_maxlen.pkl', 'rb') as f:
+            with open(maxlen_path, 'rb') as f:
                 maxlen = pickle.load(f)
         except Exception as e:
             errors['maxlen'] = str(e)
     else:
-        errors['maxlen'] = "imdb_maxlen.pkl not found"
+        errors['maxlen'] = f"imdb_maxlen.pkl not found at {maxlen_path}"
 
     return models, errors, word_index, maxlen
 
@@ -796,11 +800,16 @@ if not all_loaded:
 
     st.markdown(f"""
     <div class="warning-box" style="margin-top: 1rem;">
-        ⚠️ <strong>Some models or files could not be loaded.</strong> Please ensure the following files exist in the same directory as app.py:<br><br>
-        <code>simplernn_imdb_model.keras</code> &nbsp; <code>lstm_imdb_model.keras</code> &nbsp; <code>gru_imdb_model.keras</code><br>
-        <code>imdb_word_index.pkl</code> &nbsp; <code>imdb_maxlen.pkl</code>
+        ⚠️ <strong>Some models or files could not be loaded.</strong> Please ensure the following files exist in the <code>models/</code> directory:<br><br>
+        <code>models/simplernn_imdb_model.keras</code> &nbsp; <code>models/lstm_imdb_model.keras</code> &nbsp; <code>models/gru_imdb_model.keras</code><br>
+        <code>models/imdb_word_index.pkl</code> &nbsp; <code>models/imdb_maxlen.pkl</code>
     </div>
     """, unsafe_allow_html=True)
+
+# Handle sample review loading safely before the text area is instantiated
+if "temp_review" in st.session_state:
+    st.session_state.review_input = st.session_state.temp_review
+    del st.session_state.temp_review
 
 st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
@@ -833,11 +842,11 @@ with st.expander("💡 Try Sample Reviews", expanded=False):
     col_s1, col_s2 = st.columns(2)
     with col_s1:
         if st.button("😊 Load Positive Sample", use_container_width=True):
-            st.session_state.review_input = sample_positive
+            st.session_state.temp_review = sample_positive
             st.rerun()
     with col_s2:
         if st.button("😞 Load Negative Sample", use_container_width=True):
-            st.session_state.review_input = sample_negative
+            st.session_state.temp_review = sample_negative
             st.rerun()
 
 # ─── Analysis Results ─────────────────────────────────────────────────────────
