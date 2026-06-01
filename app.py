@@ -978,11 +978,9 @@ if analyze_btn and review_text.strip():
 
                             with cols[idx]:
                                 best_indicator = '<span class="best-badge">Best</span>' if is_best else ""
+                                style_str = f"border: 2px solid {model_color}; box-shadow: 0 0 20px {model_color}30;" if is_best else ""
                                 st.markdown(f"""
-                                <div class="result-card result-{r['sentiment_class']}" style="
-                                    {'border: 2px solid ' + model_color + ';' if is_best else ''}
-                                    {'box-shadow: 0 0 20px ' + model_color + '30;' if is_best else ''}
-                                ">
+                                <div class="result-card result-{r['sentiment_class']}" style="{style_str}">
                                     <div style="font-size: 0.8rem; font-weight: 700; color: {model_color}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
                                         {model_emojis[model_name]} {model_name}{best_indicator}
                                     </div>
