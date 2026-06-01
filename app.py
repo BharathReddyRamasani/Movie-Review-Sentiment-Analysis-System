@@ -30,13 +30,13 @@ st.markdown("""
         --primary-dark: #AA8C2C;     /* Muted Gold */
         --secondary: #A0A0A5;       /* Classic Gray */
         --accent: #D4AF37;          /* Gold Accent */
-        --bg-dark: #000000;         /* Pitch Black */
-        --bg-card: #0F0F10;         /* Matte Black Card */
-        --bg-card-hover: #161618;   /* Hover State Card */
+        --bg-dark: #07070F;         /* Dark Navy/Purple base */
+        --bg-card: rgba(18, 18, 30, 0.85); /* Dark Glass Card */
+        --bg-card-hover: rgba(26, 26, 46, 0.95);
         --text-primary: #FFFFFF;
         --text-secondary: #B0B0B5;
-        --text-muted: #55555A;
-        --border: #222222;          /* Subtle Border */
+        --text-muted: #60606A;
+        --border: rgba(255, 255, 255, 0.08); /* Subtle White Border */
         --border-gold: rgba(212, 175, 55, 0.25);
         --positive: #10B981;        /* Emerald Green */
         --negative: #EF4444;        /* Crimson Red */
@@ -44,8 +44,7 @@ st.markdown("""
 
     /* Global styles */
     .stApp {
-        background-color: #050505;
-        background-image: radial-gradient(circle at 50% 50%, #121215 0%, #050505 100%);
+        background: linear-gradient(135deg, #0A0A16 0%, #120A24 50%, #080D1A 100%);
         font-family: 'Inter', sans-serif;
         color: var(--text-primary);
     }
@@ -55,7 +54,7 @@ st.markdown("""
 
     /* Sidebar styling */
     [data-testid="stSidebar"] {
-        background-color: #0A0A0B !important;
+        background-color: #0D0D19 !important;
         border-right: 1px solid var(--border) !important;
     }
 
@@ -74,7 +73,7 @@ st.markdown("""
     .hero-header {
         text-align: center;
         padding: 3rem 2rem 2.5rem;
-        background: linear-gradient(180deg, #0A0A0C 0%, #050505 100%);
+        background: linear-gradient(180deg, #121226 0%, #0A0A16 100%);
         border-radius: 16px;
         border: 1px solid var(--border);
         margin-bottom: 2rem;
@@ -86,10 +85,8 @@ st.markdown("""
         font-family: 'Outfit', sans-serif;
         font-size: 2.8rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #FFFFFF 0%, #D4AF37 50%, #A0A0A5 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: #D4AF37; /* Solid gold brand color */
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         margin: 0;
         line-height: 1.2;
     }
@@ -125,7 +122,8 @@ st.markdown("""
 
     /* Card styles */
     .glass-card {
-        background: #0F0F10;
+        background: rgba(18, 18, 30, 0.85);
+        backdrop-filter: blur(10px);
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 1.5rem;
