@@ -607,7 +607,13 @@ def load_models():
 def preprocess_text(review_text, word_index, maxlen):
     """Preprocess the review text for model prediction."""
     try:
-        from tensorflow.keras.preprocessing.sequence import pad_sequences
+        try:
+            from keras.utils import pad_sequences          # Keras 3.x (TF 2.16+)
+        except ImportError:
+            try:
+                from keras.preprocessing.sequence import pad_sequences
+            except ImportError:
+                from tensorflow.keras.preprocessing.sequence import pad_sequences
 
         # Tokenize
         words = review_text.lower().split()
